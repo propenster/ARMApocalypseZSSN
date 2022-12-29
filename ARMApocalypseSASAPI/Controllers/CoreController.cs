@@ -100,11 +100,11 @@ namespace ARMApocalypseSASAPI.Controllers
         {
             string IPAddress = Request?.HttpContext?.Connection?.RemoteIpAddress?.ToString();
             _logger.LogInformation($"IP is {IPAddress}");
-            _logger.LogInformation($"{nameof(ReportApiVersionsAttribute)} ReportInfectionStatus Request  - {JsonConvert.SerializeObject(request)} AT TIMESTAMPS: {DateTime.Now}");
+            _logger.LogInformation($"{nameof(ReportSurvivorInfectionStatus)} ReportInfectionStatus Request  - {JsonConvert.SerializeObject(request)} AT TIMESTAMPS: {DateTime.Now}");
 
             var result = await _coreService.ReportSurvivorInfectionStatus(request);
 
-            _logger.LogInformation($"{nameof(ReportApiVersionsAttribute)} ReportInfectionStatus Request  - RESPONSE: {JsonConvert.SerializeObject(result)} AT TIMESTAMPS: {DateTime.Now}");
+            _logger.LogInformation($"{nameof(ReportSurvivorInfectionStatus)} ReportInfectionStatus Request  - RESPONSE: {JsonConvert.SerializeObject(result)} AT TIMESTAMPS: {DateTime.Now}");
 
             return StatusCode((int)result.StatusCode, result);
         }
