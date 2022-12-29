@@ -33,7 +33,7 @@ namespace ARMApocalypseSASAPI.Controllers
         [ProducesDefaultResponseType(typeof(DefaultErrorResponse))]
         public async Task<IActionResult> GetAllItems()
         {
-            string IPAddress = Request.HttpContext.Connection.RemoteIpAddress.ToString();
+            string IPAddress = Request?.HttpContext?.Connection?.RemoteIpAddress?.ToString();
             _logger.LogInformation($"IP is {IPAddress}");
             //_logger.LogInformation($"{nameof(GetAllItems)} Get Customer Limit Request  - {JsonConvert.SerializeObject(request)} AT TIMESTAMPS: {DateTime.Now}");
 
@@ -41,12 +41,73 @@ namespace ARMApocalypseSASAPI.Controllers
 
             _logger.LogInformation($"{nameof(GetAllItems)} GetAllItems Request  - RESPONSE: {JsonConvert.SerializeObject(result)} AT TIMESTAMPS: {DateTime.Now}");
 
-            return StatusCode((int)HttpStatusCode.OK, result);
-
-
+            return StatusCode((int)result.StatusCode, result);
         }
 
+        [HttpPost, Route("survivors/register")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GenericResponse<SurvivorResponse>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(DefaultErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(DefaultErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status406NotAcceptable, Type = typeof(DefaultErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(DefaultErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status403Forbidden, Type = typeof(DefaultErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status415UnsupportedMediaType, Type = typeof(DefaultErrorResponse))]
+        [ProducesDefaultResponseType(typeof(DefaultErrorResponse))]
+        public async Task<IActionResult> RegisterSurvivor([FromBody] RegisterSurvivorRequest request)
+        {
+            string IPAddress = Request?.HttpContext?.Connection?.RemoteIpAddress?.ToString();
+            _logger.LogInformation($"IP is {IPAddress}");
+            _logger.LogInformation($"{nameof(RegisterSurvivor)} RegisterSurvivor Request  - {JsonConvert.SerializeObject(request)} AT TIMESTAMPS: {DateTime.Now}");
 
+            var result = await _coreService.RegisterSurvivor(request) ;
+
+            _logger.LogInformation($"{nameof(RegisterSurvivor)} RegisterSurvivor Request  - RESPONSE: {JsonConvert.SerializeObject(result)} AT TIMESTAMPS: {DateTime.Now}");
+
+            return StatusCode((int)result.StatusCode, result);
+        }
+
+        [HttpPost, Route("survivors/location/update")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GenericResponse<SurvivorResponse>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(DefaultErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(DefaultErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status406NotAcceptable, Type = typeof(DefaultErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(DefaultErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status403Forbidden, Type = typeof(DefaultErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status415UnsupportedMediaType, Type = typeof(DefaultErrorResponse))]
+        [ProducesDefaultResponseType(typeof(DefaultErrorResponse))]
+        public async Task<IActionResult> UpdateSurvivorLocation([FromBody] UpdateSurvivorLocationRequest request)
+        {
+            string IPAddress = Request?.HttpContext?.Connection?.RemoteIpAddress?.ToString();
+            _logger.LogInformation($"IP is {IPAddress}");
+            _logger.LogInformation($"{nameof(UpdateSurvivorLocation)} UpdateSurvivorLocation Request  - {JsonConvert.SerializeObject(request)} AT TIMESTAMPS: {DateTime.Now}");
+
+            var result = await _coreService.UpdateSurvivorLocation(request);
+
+            _logger.LogInformation($"{nameof(UpdateSurvivorLocation)} UpdateSurvivorLocation Request  - RESPONSE: {JsonConvert.SerializeObject(result)} AT TIMESTAMPS: {DateTime.Now}");
+
+            return StatusCode((int)result.StatusCode, result);
+        }
+        [HttpPost, Route("survivors/infectionstatus/update")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GenericResponse<SurvivorInfectionReportResponse>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(DefaultErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(DefaultErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status406NotAcceptable, Type = typeof(DefaultErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(DefaultErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status403Forbidden, Type = typeof(DefaultErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status415UnsupportedMediaType, Type = typeof(DefaultErrorResponse))]
+        [ProducesDefaultResponseType(typeof(DefaultErrorResponse))]
+        public async Task<IActionResult> ReportSurvivorInfectionStatus([FromBody] UpdateSurvivorInfectionStatusRequest request)
+        {
+            string IPAddress = Request?.HttpContext?.Connection?.RemoteIpAddress?.ToString();
+            _logger.LogInformation($"IP is {IPAddress}");
+            _logger.LogInformation($"{nameof(ReportApiVersionsAttribute)} ReportInfectionStatus Request  - {JsonConvert.SerializeObject(request)} AT TIMESTAMPS: {DateTime.Now}");
+
+            var result = await _coreService.ReportSurvivorInfectionStatus(request);
+
+            _logger.LogInformation($"{nameof(ReportApiVersionsAttribute)} ReportInfectionStatus Request  - RESPONSE: {JsonConvert.SerializeObject(result)} AT TIMESTAMPS: {DateTime.Now}");
+
+            return StatusCode((int)result.StatusCode, result);
+        }
 
 
 

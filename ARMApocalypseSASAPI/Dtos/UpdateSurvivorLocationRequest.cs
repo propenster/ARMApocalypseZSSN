@@ -2,7 +2,8 @@
 {
     public class UpdateSurvivorLocationRequest
     {
-        public double LastKnownLocationLongitude { get; set; }
-        public double LastKnownLocationLatitude { get; set; }
+        public string SurvivorId { get; set; } = string.Empty;
+        public double LastLocationLongitude { get; set; }
+        public double LastLocationLatitude { get; set; }
     }
 }

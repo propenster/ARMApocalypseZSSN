@@ -25,6 +25,8 @@ namespace ARMApocalypseSASAPI.Mappers
                 .ForMember(x => x.Gender, opt => opt.MapFrom(x => x.Gender))
                 .ReverseMap();
 
+            CreateMap<UpdateSurvivorLocationRequest, Survivor>().ReverseMap();
+
 
             CreateMap<TradeItem, TradeItemResponse>()
 
@@ -32,6 +34,15 @@ namespace ARMApocalypseSASAPI.Mappers
                 .ForMember(x => x.Quantity, opt => opt.MapFrom(x => x.Quantity))
                 .ForMember(x => x.UnitPoints, opt => opt.MapFrom(x => x.UnitPoints))
                 .ReverseMap();
+
+            CreateMap<UpdateSurvivorInfectionStatusRequest, SurvivorInfectionReport>()
+
+                .ForMember(x => x.ReportedSurvivorID, opt => opt.MapFrom(x => x.ReportedSurvivorID))
+                .ForMember(x => x.ReportingSurvivorID, opt => opt.MapFrom(x => x.ReportingSurvivorID))
+                .ForMember(x => x.Notes, opt => opt.MapFrom(x => x.Notes))
+                .ForMember(x => x.DateOfReport, opt => opt.MapFrom(x => x.DateOfReport))
+                .ReverseMap()
+                ;
 
 
 
