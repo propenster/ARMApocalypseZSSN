@@ -12,6 +12,7 @@ namespace ARMApocalypseSASAPI.Interfaces
         
         
         Task<GenericResponse<object>> Trade(TradingRequest request);
+        Task<GenericResponse<ReportResponse>> FetchReport();
 
 
 

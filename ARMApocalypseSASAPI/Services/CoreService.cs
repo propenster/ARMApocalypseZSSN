@@ -78,6 +78,8 @@ namespace ARMApocalypseSASAPI.Services
                         ownItem.ItemId = globalItem.Id;
                         ownItem.Item = globalItem;
                         ownItem.IsActive = true;
+                        ownItem.UnitPoints = globalItem.Price;
+
                         ownItem.Id = Guid.NewGuid().ToString();
 
                         await _unitOfWork.TradeItemRepository.AddAsync(ownItem);
@@ -384,6 +386,8 @@ namespace ARMApocalypseSASAPI.Services
                         ownItem.ItemId = globalItem.Id;
                         ownItem.Item = globalItem;
                         ownItem.IsActive = true;
+                        ownItem.UnitPoints = globalItem.Price;
+
                         ownItem.Id = Guid.NewGuid().ToString();
 
                         await _unitOfWork.TradeItemRepository.AddAsync(ownItem);
@@ -408,6 +412,7 @@ namespace ARMApocalypseSASAPI.Services
                         ownItem.ItemId = globalItem.Id;
                         ownItem.Item = globalItem;
                         ownItem.IsActive = true;
+                        ownItem.UnitPoints = globalItem.Price;
                         ownItem.Id = Guid.NewGuid().ToString();
 
                         await _unitOfWork.TradeItemRepository.AddAsync(ownItem);
@@ -454,6 +459,61 @@ namespace ARMApocalypseSASAPI.Services
                 return new GenericResponse<object>
                 {
                     Data = new SurvivorResponse(),
+                    StatusCode = System.Net.HttpStatusCode.InternalServerError,
+                    Success = false,
+                    Message = ex.Message
+                };
+            }
+        }
+
+        public async Task<GenericResponse<ReportResponse>> FetchReport()
+        {
+            try
+            {
+                var totalTradeItems = await _unitOfWork.TradeItemRepository.GetAsync(x => x.IsActive, include: i => i.Include(x => x.Item));
+                var totalSurvivors = await _unitOfWork.SurvivorRepository.GetCountAsync(x => x.IsActive);
+
+                var totalInfectedSurvivors = await _unitOfWork.SurvivorRepository.GetCountAsync(x => x.IsInfected);
+                var totalUnInfectedSurvivors = await _unitOfWork.SurvivorRepository.GetCountAsync(x => !x.IsInfected);
+
+                var totalPointsLostDueToInfection = (await _unitOfWork.TradeItemRepository.GetAsync(x => x.Survivor.IsInfected, include: i => i.Include(x => x.Survivor))).Sum(x => x.UnitPoints);
+                //this is complete ps.... I'm coming back to this... the logic is not right yet....
+                var itemShift = totalTradeItems.Select(x => new ItemAverageResponse
+                {
+                    ItemName = x.Item.Name,
+                    Total = totalTradeItems.Where(x => x.ItemId == x.Item.Id).Sum(x => x.UnitPoints),
+                    Average = (totalTradeItems.Where(x => x.ItemId == x.Item.Id).Sum(x => x.UnitPoints) / totalTradeItems.Count(x => x.ItemId == x.Item.Id))
+                }).ToList();
+
+                //var itesmShift = totalTradeItems.Select(x => x.Item).ToList().Select(y => new ItemAverageResponse
+                //{
+                //    ItemName = y.Name,
+                //    Average = 
+
+                //}).ToList();
+                return new GenericResponse<ReportResponse>
+                {
+                    Data = new ReportResponse
+                    {
+                        InfectedSurvivorsPercent = totalInfectedSurvivors,
+                        ItemAverageResponses = itemShift,
+                        NonInfectedSurvivorsPercent = totalUnInfectedSurvivors,
+                        PointsLostDueToInfection = totalPointsLostDueToInfection
+
+                    },
+                    Success = true,
+                    Message = "Report fetched successfully",
+                    StatusCode = System.Net.HttpStatusCode.Created
+                };
+
+            }
+            catch (Exception ex)
+            {
+                //log error here
+                Console.WriteLine(ex);
+                return new GenericResponse<ReportResponse>
+                {
+                    Data = new ReportResponse(),
                     StatusCode = System.Net.HttpStatusCode.InternalServerError,
                     Success = false,
                     Message = ex.Message

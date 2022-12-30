@@ -153,6 +153,26 @@ namespace ARMApocalypseSASAPI.Controllers
             return StatusCode((int)result.StatusCode, result);
         }
 
+        [HttpPut, Route("reports/all")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GenericResponse<ReportResponse>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(DefaultErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(DefaultErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status406NotAcceptable, Type = typeof(DefaultErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(DefaultErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status403Forbidden, Type = typeof(DefaultErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status415UnsupportedMediaType, Type = typeof(DefaultErrorResponse))]
+        [ProducesDefaultResponseType(typeof(DefaultErrorResponse))]
+        public async Task<IActionResult> FetchReport()
+        {
+            string IPAddress = Request?.HttpContext?.Connection?.RemoteIpAddress?.ToString();
+            _logger.LogInformation($"IP is {IPAddress}");
+            //_logger.LogInformation($"{nameof(GetReport)} GetReport Request  - {JsonConvert.SerializeObject(request)} AT TIMESTAMPS: {DateTime.Now}");
 
+            var result = await _coreService.FetchReport();
+
+            _logger.LogInformation($"{nameof(FetchReport)} FetchReport Request  - RESPONSE: {JsonConvert.SerializeObject(result)} AT TIMESTAMPS: {DateTime.Now}");
+
+            return StatusCode((int)result.StatusCode, result);
+        }
     }
 }
