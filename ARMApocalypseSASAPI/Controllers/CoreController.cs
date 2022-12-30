@@ -153,7 +153,7 @@ namespace ARMApocalypseSASAPI.Controllers
             return StatusCode((int)result.StatusCode, result);
         }
 
-        [HttpPut, Route("reports/all")]
+        [HttpGet, Route("reports/all")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GenericResponse<ReportResponse>))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(DefaultErrorResponse))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(DefaultErrorResponse))]

@@ -50,7 +50,7 @@ namespace ARMApocalypseSASAPI.Tests
                 Age = 26,
                 Gender = "M",
                 LastLocationLatitude = -123284233.233,
-                LastLocationLongitude = 23632632732.1212
+                LastLocationLongitude = 236326327.121
             };
 
             //Act
