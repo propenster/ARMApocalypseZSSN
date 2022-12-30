@@ -5,5 +5,6 @@
         public string SurvivorId { get; set; } = string.Empty;
         public double LastLocationLongitude { get; set; }
         public double LastLocationLatitude { get; set; }
+        public bool? IsInfected { get; set; } = null;   
     }
 }

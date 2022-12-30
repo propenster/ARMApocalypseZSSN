@@ -1,4 +1,5 @@
 using ARMApocalypseSASAPI.Data;
+using ARMApocalypseSASAPI.Helpers;
 using ARMApocalypseSASAPI.Mappers;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -9,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-
+builder.Services.Configure<ApiConfig>(builder.Configuration.GetSection(nameof(ApiConfig)));
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseInMemoryDatabase(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddAutoMapper(typeof(ProfileMapper));
 builder.Services.AddControllersWithViews()

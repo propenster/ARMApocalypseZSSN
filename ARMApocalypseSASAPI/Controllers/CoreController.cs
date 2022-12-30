@@ -66,7 +66,7 @@ namespace ARMApocalypseSASAPI.Controllers
             return StatusCode((int)result.StatusCode, result);
         }
 
-        [HttpPost, Route("survivors/location/update")]
+        [HttpPut, Route("survivors/location/update")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GenericResponse<SurvivorResponse>))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(DefaultErrorResponse))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(DefaultErrorResponse))]
@@ -109,6 +109,49 @@ namespace ARMApocalypseSASAPI.Controllers
             return StatusCode((int)result.StatusCode, result);
         }
 
+        [HttpPut, Route("survivors/infectionstatus/flag")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GenericResponse<SurvivorResponse>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(DefaultErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(DefaultErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status406NotAcceptable, Type = typeof(DefaultErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(DefaultErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status403Forbidden, Type = typeof(DefaultErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status415UnsupportedMediaType, Type = typeof(DefaultErrorResponse))]
+        [ProducesDefaultResponseType(typeof(DefaultErrorResponse))]
+        public async Task<IActionResult> FlagSurvivorAsInfected([FromBody] FlagSurvivorInfectedRequest request)
+        {
+            string IPAddress = Request?.HttpContext?.Connection?.RemoteIpAddress?.ToString();
+            _logger.LogInformation($"IP is {IPAddress}");
+            _logger.LogInformation($"{nameof(ReportSurvivorInfectionStatus)} FlagSurvivorInfected Request  - {JsonConvert.SerializeObject(request)} AT TIMESTAMPS: {DateTime.Now}");
+
+            var result = await _coreService.FlagSurvivorAsInfected(request);
+
+            _logger.LogInformation($"{nameof(ReportSurvivorInfectionStatus)} FlagSurvivorInfected Request  - RESPONSE: {JsonConvert.SerializeObject(result)} AT TIMESTAMPS: {DateTime.Now}");
+
+            return StatusCode((int)result.StatusCode, result);
+        }
+
+        [HttpPut, Route("trade/create")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GenericResponse<object>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(DefaultErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(DefaultErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status406NotAcceptable, Type = typeof(DefaultErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests, Type = typeof(DefaultErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status403Forbidden, Type = typeof(DefaultErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status415UnsupportedMediaType, Type = typeof(DefaultErrorResponse))]
+        [ProducesDefaultResponseType(typeof(DefaultErrorResponse))]
+        public async Task<IActionResult> CreateTrade([FromBody] TradingRequest request)
+        {
+            string IPAddress = Request?.HttpContext?.Connection?.RemoteIpAddress?.ToString();
+            _logger.LogInformation($"IP is {IPAddress}");
+            _logger.LogInformation($"{nameof(CreateTrade)} CreateTrade Request  - {JsonConvert.SerializeObject(request)} AT TIMESTAMPS: {DateTime.Now}");
+
+            var result = await _coreService.Trade(request);
+
+            _logger.LogInformation($"{nameof(CreateTrade)} CreateTrade Request  - RESPONSE: {JsonConvert.SerializeObject(result)} AT TIMESTAMPS: {DateTime.Now}");
+
+            return StatusCode((int)result.StatusCode, result);
+        }
 
 
     }

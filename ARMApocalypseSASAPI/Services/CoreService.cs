@@ -1,8 +1,10 @@
 ﻿using ARMApocalypseSASAPI.Data;
 using ARMApocalypseSASAPI.Dtos;
+using ARMApocalypseSASAPI.Helpers;
 using ARMApocalypseSASAPI.Interfaces;
 using ARMApocalypseSASAPI.Models;
 using AutoMapper;
+using Microsoft.Extensions.Options;
 
 namespace ARMApocalypseSASAPI.Services
 {
@@ -10,11 +12,13 @@ namespace ARMApocalypseSASAPI.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly ApiConfig _config;
 
-        public CoreService(IUnitOfWork unitOfWork, IMapper mapper)
+        public CoreService(IUnitOfWork unitOfWork, IMapper mapper, IOptions<ApiConfig> config)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _config = config.Value;
         }
 
         public async Task<GenericResponse<IEnumerable<ItemResponse>>> GetAllItems()
@@ -134,8 +138,8 @@ namespace ARMApocalypseSASAPI.Services
         {
             try
             {
-                var reporter = await _unitOfWork.SurvivorRepository.FirstOrDefaultAsync(filter: x => x.Id == request.ReportingSurvivorID);
-                var survivor = await _unitOfWork.SurvivorRepository.FirstOrDefaultAsync(filter: x => x.Id == request.ReportedSurvivorID);
+                var reporter = await _unitOfWork.SurvivorRepository.FirstOrDefaultAsync(filter: x => x.Id == request.ReportingSurvivorID && x.IsActive && !x.IsDeleted && !x.IsInfected);
+                var survivor = await _unitOfWork.SurvivorRepository.FirstOrDefaultAsync(filter: x => x.Id == request.ReportedSurvivorID && x.IsActive && !x.IsDeleted && !x.IsInfected);
 
                 if (reporter is null)
                 {
@@ -207,7 +211,7 @@ namespace ARMApocalypseSASAPI.Services
             try
             {
 
-                var survivor = await _unitOfWork.SurvivorRepository.FirstOrDefaultAsync(filter: x => x.Id == request.SurvivorId);
+                var survivor = await _unitOfWork.SurvivorRepository.FirstOrDefaultAsync(filter: x => x.Id == request.SurvivorId && x.IsActive && !x.IsDeleted && !x.IsInfected);
                 if(survivor is null)
                 {
                     return new GenericResponse<SurvivorResponse>
@@ -250,6 +254,212 @@ namespace ARMApocalypseSASAPI.Services
                 };
             }
 
+        }
+
+        public async Task<GenericResponse<SurvivorResponse>> FlagSurvivorAsInfected(FlagSurvivorInfectedRequest request)
+        {
+            try
+            {
+
+                var survivor = await _unitOfWork.SurvivorRepository.FirstOrDefaultAsync(filter: x => x.Id == request.SurvivorId);
+                if (survivor is null)
+                {
+                    return new GenericResponse<SurvivorResponse>
+                    {
+                        Data = new SurvivorResponse(),
+                        Success = false,
+                        Message = "Invalid survivor",
+                        StatusCode = System.Net.HttpStatusCode.NotFound
+                    };
+                }
+
+                var reportsYetForSurvivor = await _unitOfWork.SurvivorInfectionReportRepository.GetCountAsync(x => x.ReportedSurvivorID == survivor.Id);
+                int.TryParse(_config.MaximumInfectionFlagReports, out var maximumInfectionFlagReports);
+                var response = new SurvivorResponse();
+                if(reportsYetForSurvivor < maximumInfectionFlagReports)
+                {
+                    return new GenericResponse<SurvivorResponse>
+                    {
+                        Data = response,
+                        Success = false,
+                        Message = "Survivor cannot be marked infected at this time because it has not yet been reported for maximum number of times possible.",
+                        StatusCode = System.Net.HttpStatusCode.BadRequest
+                    };
+                }
+
+                survivor.IsInfected = true;
+                survivor.IsActive = false;
+                survivor.IsDeleted = true;
+                _unitOfWork.SurvivorRepository.Update(survivor);
+                await _unitOfWork.SaveChangesAsync();
+
+
+                response = GenerateSurvivorResponse(survivor);
+
+
+                return new GenericResponse<SurvivorResponse>
+                {
+                    Data = response,
+                    Success = true,
+                    Message = "Survivor flagged infected successfully",
+                    StatusCode = System.Net.HttpStatusCode.OK
+                };
+
+            }
+            catch (Exception ex)
+            {
+                //log error here
+                Console.WriteLine(ex);
+                return new GenericResponse<SurvivorResponse>
+                {
+                    Data = new SurvivorResponse(),
+                    StatusCode = System.Net.HttpStatusCode.InternalServerError,
+                    Success = false,
+                    Message = ex.Message
+                };
+            }
+        }
+
+        public async Task<GenericResponse<object>> Trade(TradingRequest request)
+        {
+            _unitOfWork.CreateTransaction();
+
+            var buyerSurvivorProperties = new List<TradeItem>();
+            var sellerSurvivorProperties = new List<TradeItem>();
+            try
+            {
+
+                var buyer = await _unitOfWork.SurvivorRepository.FirstOrDefaultAsync(filter: x => x.Id == request.BuyerSurvivorId && x.IsActive && !x.IsDeleted && !x.IsInfected);
+                var seller = await _unitOfWork.SurvivorRepository.FirstOrDefaultAsync(filter: x => x.Id == request.SellerSurvivorId && x.IsActive && !x.IsDeleted && !x.IsInfected);
+                if (buyer is null)
+                {
+                    return new GenericResponse<object>
+                    {
+                        Data = null,
+                        Success = false,
+                        Message = "Invalid buyer",
+                        StatusCode = System.Net.HttpStatusCode.NotFound
+                    };
+                }
+
+                if (seller is null)
+                {
+                    return new GenericResponse<object>
+                    {
+                        Data = null,
+                        Success = false,
+                        Message = "Invalid seller",
+                        StatusCode = System.Net.HttpStatusCode.NotFound
+                    };
+                }
+
+                var buyerItems = request.BuyerItems.Select(x => _unitOfWork.ItemRepository.FirstOrDefault(b => b.Id == x.ItemId)).ToList();
+                var sellerItems = request.SellerItems.Select(x => _unitOfWork.ItemRepository.FirstOrDefault(b => b.Id == x.ItemId)).ToList();
+
+
+
+                var buyerTotalAskingPoints = buyerItems.Sum(x => x.Price);
+                var sellerTotalAskingPoints = sellerItems.Sum(x => x.Price);
+                if(buyerTotalAskingPoints != sellerTotalAskingPoints)
+                {
+                    return new GenericResponse<object>
+                    {
+                        Data = null,
+                        Success = false,
+                        Message = "Left handside total points must be equal to right handside total points.",
+                        StatusCode = System.Net.HttpStatusCode.BadRequest
+                    };
+                }
+
+                //No conflict, the trade can go on successfully! 
+                //try to swap here.... 
+                if (buyerItems.Any())
+                {
+                    foreach (var item in buyerItems)
+                    {
+                        var globalItem = await _unitOfWork.ItemRepository.FirstOrDefaultAsync(x => x.Id == item.Id);
+                        var ownItem = _mapper.Map<TradeItem>(item);
+                        //transfer them to the seller survivor
+                        ownItem.SurvivorId = seller.Id;
+                        ownItem.Survivor = seller;
+                        ownItem.ItemId = globalItem.Id;
+                        ownItem.Item = globalItem;
+                        ownItem.IsActive = true;
+                        ownItem.Id = Guid.NewGuid().ToString();
+
+                        await _unitOfWork.TradeItemRepository.AddAsync(ownItem);
+                        await _unitOfWork.SaveChangesAsync();
+
+                        //transfered to seller;...
+                        sellerSurvivorProperties.Add(ownItem);
+                    }
+                }
+
+                if (sellerItems.Any())
+                {
+                    foreach (var item in sellerItems)
+                    {
+                        var globalItem = await _unitOfWork.ItemRepository.FirstOrDefaultAsync(x => x.Id == item.Id);
+                        var ownItem = _mapper.Map<TradeItem>(item);
+
+                        //transfer them to the buyer survivor
+
+                        ownItem.SurvivorId = buyer.Id;
+                        ownItem.Survivor = buyer;
+                        ownItem.ItemId = globalItem.Id;
+                        ownItem.Item = globalItem;
+                        ownItem.IsActive = true;
+                        ownItem.Id = Guid.NewGuid().ToString();
+
+                        await _unitOfWork.TradeItemRepository.AddAsync(ownItem);
+                        await _unitOfWork.SaveChangesAsync();
+
+                        //transfered to buyer...
+                        buyerSurvivorProperties.Add(ownItem);
+                    }
+                }
+                //create property...
+                if (buyerSurvivorProperties.Any())
+                {
+                    buyer.OwnTradeItems.AddRange(buyerSurvivorProperties);
+
+                }
+                if (sellerSurvivorProperties.Any())
+                {
+                    seller.OwnTradeItems.AddRange(sellerSurvivorProperties);
+
+                }
+
+                //UPDATE buyer's info into DB
+                _unitOfWork.SurvivorRepository.Update(buyer);
+                await _unitOfWork.SaveChangesAsync();
+
+                _unitOfWork.SurvivorRepository.Update(seller);  
+                await _unitOfWork.SaveChangesAsync();
+
+                _unitOfWork.Commit();
+                return new GenericResponse<object>
+                {
+                    Data = null,
+                    Success = true,
+                    Message = "Trade facilitated successfully",
+                    StatusCode = System.Net.HttpStatusCode.OK
+                };
+
+            }
+            catch (Exception ex)
+            {
+                _unitOfWork.Rollback();
+                //log error here
+                Console.WriteLine(ex);
+                return new GenericResponse<object>
+                {
+                    Data = new SurvivorResponse(),
+                    StatusCode = System.Net.HttpStatusCode.InternalServerError,
+                    Success = false,
+                    Message = ex.Message
+                };
+            }
         }
     }
 }
