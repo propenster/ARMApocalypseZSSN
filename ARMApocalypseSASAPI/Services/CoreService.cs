@@ -4,6 +4,7 @@ using ARMApocalypseSASAPI.Helpers;
 using ARMApocalypseSASAPI.Interfaces;
 using ARMApocalypseSASAPI.Models;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace ARMApocalypseSASAPI.Services
@@ -138,8 +139,8 @@ namespace ARMApocalypseSASAPI.Services
         {
             try
             {
-                var reporter = await _unitOfWork.SurvivorRepository.FirstOrDefaultAsync(filter: x => x.Id == request.ReportingSurvivorID && x.IsActive && !x.IsDeleted && !x.IsInfected);
-                var survivor = await _unitOfWork.SurvivorRepository.FirstOrDefaultAsync(filter: x => x.Id == request.ReportedSurvivorID && x.IsActive && !x.IsDeleted && !x.IsInfected);
+                var reporter = await _unitOfWork.SurvivorRepository.FirstOrDefaultAsync(filter: x => x.Id == request.ReportingSurvivorID && x.IsActive && !x.IsDeleted && !x.IsInfected, include: i => i.Include(x => x.OwnTradeItems).ThenInclude(x => x.Item));
+                var survivor = await _unitOfWork.SurvivorRepository.FirstOrDefaultAsync(filter: x => x.Id == request.ReportedSurvivorID && x.IsActive && !x.IsDeleted && !x.IsInfected, include: i => i.Include(x => x.OwnTradeItems).ThenInclude(x => x.Item));
 
                 if (reporter is null)
                 {
@@ -211,7 +212,7 @@ namespace ARMApocalypseSASAPI.Services
             try
             {
 
-                var survivor = await _unitOfWork.SurvivorRepository.FirstOrDefaultAsync(filter: x => x.Id == request.SurvivorId && x.IsActive && !x.IsDeleted && !x.IsInfected);
+                var survivor = await _unitOfWork.SurvivorRepository.FirstOrDefaultAsync(filter: x => x.Id == request.SurvivorId && x.IsActive && !x.IsDeleted && !x.IsInfected, include: i => i.Include(x => x.OwnTradeItems).ThenInclude(x => x.Item));
                 if(survivor is null)
                 {
                     return new GenericResponse<SurvivorResponse>
@@ -261,7 +262,7 @@ namespace ARMApocalypseSASAPI.Services
             try
             {
 
-                var survivor = await _unitOfWork.SurvivorRepository.FirstOrDefaultAsync(filter: x => x.Id == request.SurvivorId);
+                var survivor = await _unitOfWork.SurvivorRepository.FirstOrDefaultAsync(filter: x => x.Id == request.SurvivorId, include: i => i.Include(x => x.OwnTradeItems).ThenInclude(x => x.Item));
                 if (survivor is null)
                 {
                     return new GenericResponse<SurvivorResponse>
@@ -329,8 +330,8 @@ namespace ARMApocalypseSASAPI.Services
             try
             {
 
-                var buyer = await _unitOfWork.SurvivorRepository.FirstOrDefaultAsync(filter: x => x.Id == request.BuyerSurvivorId && x.IsActive && !x.IsDeleted && !x.IsInfected);
-                var seller = await _unitOfWork.SurvivorRepository.FirstOrDefaultAsync(filter: x => x.Id == request.SellerSurvivorId && x.IsActive && !x.IsDeleted && !x.IsInfected);
+                var buyer = await _unitOfWork.SurvivorRepository.FirstOrDefaultAsync(filter: x => x.Id == request.BuyerSurvivorId && x.IsActive && !x.IsDeleted && !x.IsInfected, include: i => i.Include(x => x.OwnTradeItems).ThenInclude(x => x.Item));
+                var seller = await _unitOfWork.SurvivorRepository.FirstOrDefaultAsync(filter: x => x.Id == request.SellerSurvivorId && x.IsActive && !x.IsDeleted && !x.IsInfected, include: i => i.Include(x => x.OwnTradeItems).ThenInclude(x => x.Item));
                 if (buyer is null)
                 {
                     return new GenericResponse<object>
@@ -355,8 +356,6 @@ namespace ARMApocalypseSASAPI.Services
 
                 var buyerItems = request.BuyerItems.Select(x => _unitOfWork.ItemRepository.FirstOrDefault(b => b.Id == x.ItemId)).ToList();
                 var sellerItems = request.SellerItems.Select(x => _unitOfWork.ItemRepository.FirstOrDefault(b => b.Id == x.ItemId)).ToList();
-
-
 
                 var buyerTotalAskingPoints = buyerItems.Sum(x => x.Price);
                 var sellerTotalAskingPoints = sellerItems.Sum(x => x.Price);
