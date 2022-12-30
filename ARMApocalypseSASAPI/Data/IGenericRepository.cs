@@ -68,6 +68,7 @@ namespace ARMApocalypseSASAPI.Data
 
 
         Task AddAsync(TEntity entity);
+        TEntity Add(TEntity entity);
         void Update(TEntity entity);
         Task AddRangeAsync(IEnumerable<TEntity> entities);
         void Remove(TEntity entity);

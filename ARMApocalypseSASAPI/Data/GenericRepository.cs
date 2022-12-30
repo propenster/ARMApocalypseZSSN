@@ -226,6 +226,11 @@ namespace ARMApocalypseSASAPI.Data
             dbSet.Remove(entity);
         }
 
+        public TEntity Add(TEntity entity)
+        {
+            _context.Set<TEntity>().Add(entity);
+            return entity;
+        }
     }
 }
 

@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32228.430
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ARMApocalypseSASAPI", "ARMApocalypseSASAPI\ARMApocalypseSASAPI.csproj", "{97965AD1-E419-44DF-A52E-D8C83A51530F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ARMApocalypseSASAPI", "ARMApocalypseSASAPI\ARMApocalypseSASAPI.csproj", "{97965AD1-E419-44DF-A52E-D8C83A51530F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ARMApocalypseSASAPI.Tests", "ARMApocalypseSASAPI.Tests\ARMApocalypseSASAPI.Tests.csproj", "{E19AADA8-1559-41D4-ADB1-EA22ADD6B83F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{97965AD1-E419-44DF-A52E-D8C83A51530F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{97965AD1-E419-44DF-A52E-D8C83A51530F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{97965AD1-E419-44DF-A52E-D8C83A51530F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E19AADA8-1559-41D4-ADB1-EA22ADD6B83F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E19AADA8-1559-41D4-ADB1-EA22ADD6B83F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E19AADA8-1559-41D4-ADB1-EA22ADD6B83F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E19AADA8-1559-41D4-ADB1-EA22ADD6B83F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
